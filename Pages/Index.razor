@@ -1,0 +1,79 @@
+﻿@page "/"
+@using BlazorApp1.Models;
+@inject JSRuntime JSRuntime
+@inject BlazorApp1.Services.IclinicaService ClinicaServices;
+
+<PageTitle>Clinicas</PageTitle>
+
+<h1>Clinicas</h1>
+
+<a href="/create" class=" btn btn-success"> Criar</a>
+
+<table class=" table-responsive table table-striped">
+    <thead>
+
+        <tr>
+            <th>Nome</th>
+            <th>id</th>
+            <th>medico</th>
+            <th>Paciente</th>
+
+
+        </tr>
+
+    </thead>
+    <tbody>
+        @if(clinicas !=null && clinicas.Count >0)
+        {
+            foreach (var item in clinicas)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Agendamento</td>
+                    <td>@item.Medico</td>
+                    <td>@item.Paciente</td>
+                        <td>
+                            <a a href="/update/@item.Id" class="btn btn-warning">Atualizar</a>
+                            <button class="btn btn-danger" @onclick="async() =>await DeleteClinica(item.Id)">deletar</button>
+                        </td>
+
+
+                </tr>
+            
+            
+            }
+
+        }
+    </tbody>
+</table>
+
+
+
+@code
+{
+    List<Clinica> clinicas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        clinicas = await ClinicaServices.findAll();
+
+
+    }
+
+    async Task DeleteClinica(Guid id)
+    {
+
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "tem certeza que deseja deletar");
+        if (confirmed is false)
+            return;
+
+        var clinica = await ClinicaServices.GetBy(id);
+
+        await ClinicaServices.Delete(clinica);
+        clinicas = await ClinicaServices.findAll();
+        StateHasChanged();
+
+    }
+
+}
+
